@@ -105,7 +105,7 @@ RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
                 },
             }
         })
-        wash = tonumber(wash.valuewash)
+        wash = wash == 0 and 0 or tonumber(wash.valuewash)
     elseif Config.Util == 'ox' then
         allValues = exports.ox_inventory:Search('count', Config.Money)
         wash = lib.inputDialog('Value wash', {{type = 'number', default = maxVelue, icon = 'hashtag'}})

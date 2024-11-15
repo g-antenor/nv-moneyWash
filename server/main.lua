@@ -1,5 +1,5 @@
 QBCore = exports['qb-core']:GetCoreObject()
-local globalCooldown = false
+local globalCooldown = {}
 
 local function GetCurrentCops()
     local amount = 0
@@ -13,11 +13,9 @@ local function GetCurrentCops()
 end
 
 function startGlobalCooldown(duration)
-    globalCooldown = true
     TriggerClientEvent('moneywashing:client:setCooldown', -1, true) -- Sincroniza com os clientes
 
     SetTimeout(duration, function()
-        globalCooldown = false
         TriggerClientEvent('moneywashing:client:setCooldown', -1, false) -- Sincroniza com os clientes
     end)
 end
@@ -96,6 +94,7 @@ RegisterNetEvent("moneywashing:server:startWashMoney", function(machineId)
         
         if currentTime >= washTime then
             TriggerClientEvent('moneywashing:client:showMenu', src, machineId, false)
+            return
         end
         TriggerClientEvent('moneywashing:client:receiveStatus', src, 'A máquina está lavando. Espere ela desligar.', 'error') 
     else
@@ -128,6 +127,8 @@ RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
     if currentTime >= washTime then
         if machineId == 100 then
             startGlobalCooldown(10 * 60 * 1000)
+        elseif machineId ~= 100 and machine.id >= 3 then
+            globalCooldown[machineId] = { time = currentTime }
         end
         MySQL.Async.execute('DELETE FROM money_laundry_machines WHERE id = ?', {machineId}, function(affectedRows)
             if affectedRows > 0 then
@@ -150,10 +151,13 @@ RegisterNetEvent("moneywashing:server:washingMoney",function(amount, machineId)
     if machines.id == 100 and machines.round >= 1 then
         TriggerClientEvent('moneywashing:client:receiveStatus', src, 'A máquina está quente. Espere ela esfriar por 15 minutos.', 'error')
         return
-    end
-
-    if machines.id == machineId and machines.round >= 3 then
-        TriggerClientEvent('moneywashing:client:receiveStatus', src, 'A máquina está quente. Espere ela esfriar por 15 minutos.', 'error')
+    elseif machines.id == machineId and machines.round >= 3 then
+        local currentTime = os.time()
+        if currentTime > globalCooldown[machineId].time then
+            machines.round = 0
+        else
+            TriggerClientEvent('moneywashing:client:receiveStatus', src, 'A máquina está quente. Espere ela esfriar por 15 minutos.', 'error')
+        end 
         return
     end
 
