@@ -104,7 +104,6 @@ RegisterNetEvent("moneywashing:server:startWashMoney", function(machineId)
 end)
 
 RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
-    print(machineId)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local machine = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
@@ -144,7 +143,6 @@ RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
 end)
 
 RegisterNetEvent("moneywashing:server:washingMoney",function(amount, machineId)
-    print(machineId)
     local src = source
     local machines = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
     local oldMoney = amount

@@ -114,7 +114,6 @@ RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
     local machineGun = Config.Util == 'qb' and machineId == 100 and not (wash > maxVelueGun and allValues < wash) and wash[1] > 0 or machineId == 100 and not (wash[1] > maxVelueGun and allValues < wash[1]) and wash[1] > 0
     local machine = Config.Util == 'qb' and not (wash > maxVelue and allValues < wash) and wash > 0 or not (wash[1] > maxVelue and allValues < wash[1]) and wash[1] > 0
     
-    print(machineGun, machine)
     if wash then
         if machineGun then
             local wash = Config.Util == 'qb' and wash or wash[1]
