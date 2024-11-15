@@ -1,4 +1,5 @@
 QBCore = exports['qb-core']:GetCoreObject()
+
 local targetGetKey = false
 local starterCalled = false
 local blipGetKey = false
@@ -7,8 +8,8 @@ local currentPed = nil
 local currentBlip = nil
 local currentLocation = nil
 
-local maxVelua = 5000
-local maxVeluaGun = 15000
+local maxVelue = 5000
+local maxVelueGun = 15000
 local targetWashing = false
 
 local hasStarted = false
@@ -31,10 +32,10 @@ local function CreateBlips(location)
     -- Rota no GPS
     SetNewWaypoint(location.x, location.y)
 
-    if Config.Notify == 'qb' then
+    if Config.Util == 'qb' then
         QBCore.Functions.Notify("Rota iniciada! Siga o mapa para a localização.", "success")
-    elseif Config.Notify == 'ox' then
-        lib.notify({type = 'success', description = "Rota iniciada! Siga o mapa para a localização."})
+    elseif Config.Util == 'ox' then
+        lib.notify({ title = "Rota iniciada!", description = "Siga o mapa para a localização.", type = 'success'})
     end
 end
 
@@ -51,66 +52,146 @@ local function RemoveCurrentPedAndBlip()
 end
 
 local function Animations(wash, machineId)
-    if lib.progressCircle({
-        duration = machineId == 100 and 15000 or 7000,
-        position = 'bottom',
-        useWhileDead = false,
-        canCancel = true,
-        disable = {
-            car = true,
-        },
-        anim = {
-            dict = 'anim@heists@ornate_bank@grab_cash',
-            clip = 'cart_cash_dissapear'
-        },
-    }) then
-        TriggerServerEvent('moneywashing:server:washingMoney', wash, machineId)
-    end
-end
+    local dict = 'anim@heists@ornate_bank@grab_cash'
+    local clip = 'cart_cash_dissapear'
 
-local function ValuesDeposit(machineId)
-    local allValues = exports.ox_inventory:Search('count', Config.Money)
-    
-    local wash = lib.inputDialog('Value wash', {{type = 'number', default = maxVelua, icon = 'hashtag'}})
-    
-    if wash then
-        if machineId == 100 and not (wash[1] > maxVeluaGun and allValues < wash[1]) and wash[1] > 0 then
-            Animations(wash[1], machineId)
-        elseif not (wash[1] > maxVelua and allValues < wash[1]) and wash[1] > 0 then
-            Animations(wash[1], machineId)
-        else
-            lib.notify({description = 'Vamos rever essa quantidade ai?', type = 'error'})
+    if Config.Util == 'qb' then
+        QBCore.Functions.Progressbar('money_washing', 'Put money in the machine', 1500, false, true, {
+            disableMovement = true,
+            disableCarMovement = true,
+            disableMouse = false,
+            disableCombat = true
+            }, {}, {}, {}, function()
+                TriggerServerEvent('moneywashing:server:washingMoney', wash, machineId)
+            end
+        )
+    elseif Config.Util == 'ox' then
+        if lib.progressCircle({
+            duration = machineId == 100 and 15000 or 7000,
+            label = 'Put money in the machine',
+            position = 'bottom',
+            useWhileDead = false,
+            canCancel = true,
+            disable = {
+                car = true,
+            },
+            anim = {
+                dict = dict,
+                clip = clip
+            },
+        }) then
+            TriggerServerEvent('moneywashing:server:washingMoney', wash, machineId)
         end
     end
 end
 
-local function Menu(status, machineId)
-    lib.registerContext({
-        id = 'washMoney_menu',
-        title = 'Lavanderia',
-        options = {
-            {
-                title = 'Colocar Roupa Suja',
-                description = 'Uma máquina para lavar suas coisas 😉',
-                icon = 'shirt',
-                onSelect = function()
-                    if status then
-                        ValuesDeposit(machineId)
-                    end
-                end,
-            },
-            {
-                title = 'Sacar',
-                description = 'Eu falei sacar? ops...',
-                icon = 'hand',
-                -- disabled = status,
-                onSelect = function()
-                    TriggerServerEvent('moneywashing:server:collectMoney', machineId)
-                end
+RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
+    local allValues = 0
+    local wash = 0
+
+    if Config.Util == 'qb' then
+        QBCore.Functions.TriggerCallback('moneywashing:server:checkItemCount', function(amount)
+            allValues = allValues + amount
+        end, Config.Money)
+        wash = exports['qb-input']:ShowInput({
+            header = "Money Wash",
+            text = "Enter the amount to wash (Max: " .. maxVelue .. ")",
+            inputs = {
+                {
+                    text = "Value wash",
+                    name = "valuewash",
+                    type = "number",
+                    isRequired = true,
+                },
             }
-        }
-    })
-    lib.showContext('washMoney_menu')
+        })
+        wash = tonumber(wash.valuewash)
+    elseif Config.Util == 'ox' then
+        allValues = exports.ox_inventory:Search('count', Config.Money)
+        wash = lib.inputDialog('Value wash', {{type = 'number', default = maxVelue, icon = 'hashtag'}})
+    end
+
+    local machineGun = Config.Util == 'qb' and machineId == 100 and not (wash > maxVelueGun and allValues < wash) and wash[1] > 0 or machineId == 100 and not (wash[1] > maxVelueGun and allValues < wash[1]) and wash[1] > 0
+    local machine = Config.Util == 'qb' and not (wash > maxVelue and allValues < wash) and wash > 0 or not (wash[1] > maxVelue and allValues < wash[1]) and wash[1] > 0
+    
+    print(machineGun, machine)
+    if wash then
+        if machineGun then
+            local wash = Config.Util == 'qb' and wash or wash[1]
+            Animations(wash, machineId)
+        elseif machine then
+            local wash = Config.Util == 'qb' and wash or wash[1]
+            Animations(wash, machineId)
+        else
+            if Config.Util == 'qb' then
+                QBCore.Functions.Notify("Don't have amount", 'error')
+            elseif Config.Util == 'ox' then
+                lib.notify({description = "Don't have amount", type = 'error'})
+            end
+        end
+    end
+end)
+
+local function Menu(status, machineId)
+    if Config.Util == 'qb' then
+        local menu = {}
+
+        table.insert(menu, {
+            header = 'Lavanderia',
+            isMenuHeader = true
+        })
+
+        table.insert(menu, {
+            header = 'Colocar Roupa Suja',
+            txt = 'Uma máquina para lavar suas coisas 😉',
+            icon = 'fas fa-tshirt',
+            params = {
+                event = 'moneywashing:client:Deposit',
+                args = machineId
+            }
+        })
+
+        table.insert(menu, {
+            header = 'Sacar',
+            txt = 'Eu falei sacar? ops...',
+            icon = 'fas fa-hand-holding-usd',
+            disabled = status, -- Habilite ou desabilite com base no status
+            params = {
+                isServer = true,
+                event = 'moneywashing:server:collectMoney',
+                args = machineId
+            }
+        })
+
+        exports['qb-menu']:openMenu(menu)
+
+    elseif Config.Util == 'ox' then
+        lib.registerContext({
+            id = 'washMoney_menu',
+            title = 'Lavanderia',
+            options = {
+                {
+                    title = 'Colocar Roupa Suja',
+                    description = 'Uma máquina para lavar suas coisas 😉',
+                    icon = 'shirt',
+                    onSelect = function()
+                        if status then
+                            TriggerEvent('moneywashing:client:Deposit', machineId)
+                        end
+                    end,
+                },
+                {
+                    title = 'Sacar',
+                    description = 'Eu falei sacar? ops...',
+                    icon = 'hand',
+                    onSelect = function()
+                        TriggerServerEvent('moneywashing:server:collectMoney', machineId)
+                    end
+                }
+            }
+        })
+        lib.showContext('washMoney_menu')
+    end
 end
 
 local function SpawnMachineGun()
@@ -131,7 +212,7 @@ local function SpawnMachineGun()
     SetModelAsNoLongerNeeded(model)
 end
 
-local function InitHacking()
+RegisterNetEvent('moneywashing:client:InitHacking', function()
     local ped = PlayerPedId()
     local lootDict = 'mp_fbi_heist'
     local lootClip = 'loop'
@@ -145,11 +226,11 @@ local function InitHacking()
 
     if exports.bl_ui:WaveMatch(1, {duration = time}) then
         hasStarted = true
-    else
+    elseif Config.PSDispatch then
         exports['ps-dispatch']:ArtGalleryRobbery()
     end 
     ClearPedTasks(ped)
-end
+end)
 
 RegisterNetEvent('moneywashing:client:setCooldown', function(state)
     isOnCooldown = state
@@ -164,7 +245,7 @@ RegisterNetEvent('moneywashing:client:Animation', function(typeAction)
         TriggerEvent('QBCore:Notify', "Finish first the Route", "error")
         return
     end
-
+    
     if typeAction == 3 then
         if lib.progressCircle({
             duration = 2000,
@@ -307,56 +388,11 @@ end)
 CreateThread(function()
     while true do
         if not targetWashing then
-            for _, machineWash in pairs(Config.Machines) do
-                exports.ox_target:addBoxZone({
-                    coords = machineWash.coords,
-                    size = vec3(1.0, 1.0, 4.0),
-                    options = {
-                        {
-                            icon = "fas fa-sign-in-alt",
-                            label = "Money laundering",
-                            canInteract = function()
-                                return true
-                            end,
-                            onSelect = function()
-                                TriggerServerEvent("moneywashing:server:startWashMoney", machineWash.id)
-                            end
-                        },
-                    },
-                })
-            end
+            Machines()
 
             SpawnMachineGun()
             
-            exports.ox_target:addBoxZone({
-                coords = Config.MachineGun.target,
-                size = vec3(1.0, 1.0, 1.0),
-                -- debug = true,
-                options = {
-                    {
-                        icon = "fas fa-sign-in-alt",
-                        label = "Ligar Maquina",
-                        canInteract = function()
-                            local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
-                            return not hasStarted and hasCop >= Config.MinCop and not isOnCooldown
-                        end,
-                        onSelect = function()
-                            InitHacking()
-                        end
-                    },
-                    {
-                        icon = "fas fa-sign-in-alt",
-                        label = "Lavar Dinheiro",
-                        canInteract = function()
-                            local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
-                            return hasStarted and hasCop >= Config.MinCop and not isOnCooldown
-                        end,
-                        onSelect = function()
-                            TriggerServerEvent("moneywashing:server:startWashMoney", Config.MachineGun.id)
-                        end
-                    },
-                },
-            })
+            MachineGun(hasStarted, isOnCooldown)
 
             targetWashing = true
         end

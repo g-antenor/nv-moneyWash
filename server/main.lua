@@ -1,27 +1,6 @@
 QBCore = exports['qb-core']:GetCoreObject()
 local globalCooldown = false
 
-local function DegreeKey() 
-    local src = source
-    local degrade = math.random(23, 37)
-    local item 
-
-    for k, v in pairs(exports.ox_inventory:Search(src, 1, Config.Key)) do
-        item = v
-        break
-    end
-
-    if not item then return end
-
-    local newDurability = (item.metadata.durability or 100) - degrade
-
-    if newDurability <= 0 then
-        exports.ox_inventory:RemoveItem(src, Config.Key, 1)
-    else
-        exports.ox_inventory:SetDurability(src, item.slot, newDurability)
-    end
-end
-
 local function GetCurrentCops()
     local amount = 0
     local players = QBCore.Functions.GetQBPlayers()
@@ -47,14 +26,29 @@ lib.callback.register('moneywashing:server:getCopsAmount', function()
     return GetCurrentCops()
 end)
 
+QBCore.Functions.CreateCallback('moneywashing:server:checkItemCount', function(source, cb, itemName)
+    local itemCount = exports['qb-inventory']:GetItemCount(source, itemName)
+    -- Retorna o valor encontrado ou 0 se for nulo
+    cb(itemCount or 0)
+end)
+
 RegisterNetEvent('moneywashing:server:checkStarterItem', function()
     local src = source
-    
-    local hasItem = exports.ox_inventory:Search(src, 'count', Config.Starter)
+    local hasItem = 0
+
+    if Config.Inventory == 'ox' then 
+        hasItem = exports.ox_inventory:Search(src, 'count', Config.Starter)
+    elseif Config.Inventory == 'qb' then
+        hasItem = exports['qb-inventory']:GetItemCount(src, Config.Starter)
+    end
 
     if hasItem and hasItem >= 1 then
-        exports.ox_inventory:RemoveItem(src, Config.Starter, 1)
-        TriggerClientEvent('moneywashing:client:Animation', src)
+        if Config.Inventory == 'ox' then
+            exports.ox_inventory:RemoveItem(src, Config.Starter, 1)
+        elseif Config.Inventory == 'qb' then
+            exports['qb-inventory']:RemoveItem(src, Config.Starter, 1)
+        end
+        TriggerClientEvent('moneywashing:client:Animation', src, 1)
     else
         TriggerClientEvent('ox_lib:notify', src, {type = 'error', description = "Você não possui o item necessário!"})
     end
@@ -72,13 +66,17 @@ RegisterNetEvent('moneywashing:server:BuyKey', function()
 end)
 
 RegisterNetEvent('moneywashing:server:GetKey', function()
-    exports.ox_inventory:AddItem(source, Config.Key, 1)
+    if Config.Inventory == 'ox' then
+        exports.ox_inventory:AddItem(source, Config.Key, 1)
+    elseif Config.Inventory == 'qb' then
+        exports['qb-inventory']:AddItem(source, Config.Key, 1)
+    end
     TriggerClientEvent('moneywashing:client:FinishRoute', source)
 end)
 
 RegisterNetEvent('moneywashing:server:SetDoor', function(doorId)
     local doorStatus = exports.ox_doorlock:getDoor(doorId)
-    DegreeKey()
+
     if doorStatus.state == 1 then
         exports.ox_doorlock:setDoorState(doorId, 0)
     else
@@ -106,6 +104,7 @@ RegisterNetEvent("moneywashing:server:startWashMoney", function(machineId)
 end)
 
 RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
+    print(machineId)
     local src = source
     local Player = QBCore.Functions.GetPlayer(src)
     local machine = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
@@ -128,7 +127,9 @@ RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
 
     -- Verifica se 6 minutos se passaram
     if currentTime >= washTime then
-        startGlobalCooldown(10 * 60 * 1000)
+        if machineId == 100 then
+            startGlobalCooldown(10 * 60 * 1000)
+        end
         MySQL.Async.execute('DELETE FROM money_laundry_machines WHERE id = ?', {machineId}, function(affectedRows)
             if affectedRows > 0 then
                 Player.Functions.AddMoney('cash', amount) -- Retorna o valor coletado
@@ -143,6 +144,7 @@ RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
 end)
 
 RegisterNetEvent("moneywashing:server:washingMoney",function(amount, machineId)
+    print(machineId)
     local src = source
     local machines = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
     local oldMoney = amount
@@ -157,7 +159,8 @@ RegisterNetEvent("moneywashing:server:washingMoney",function(amount, machineId)
         return
     end
 
-    if exports.ox_inventory:RemoveItem(src, Config.Money, amount) then
+    local removedItem = Config.Inventory == 'ox' and exports.ox_inventory:RemoveItem(src, Config.Money, amount) or exports['qb-inventory']:RemoveItem(src, Config.Money, amount)
+    if removedItem then
         
         if machineId == 100 then
             machines.round = machines.round + 1

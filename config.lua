@@ -3,12 +3,16 @@ Config = {}
 Config.PoliceRequired = 1
 
 -- Config resources
-Config.Inventory = 'ox'             -- "qb": qb-inventory,  "ox": ox-inventory.
-Config.Target = 'ox'                -- "qb": qb-target,     "ox": ox-target.
-Config.Notify = 'ox'                -- "qb": qb-target,     "ox": ox-target.
+Config.Inventory = 'qb'             -- "qb": qb-inventory,  "ox": ox-inventory.
+Config.Target    = 'qb'             -- "qb": qb-target,     "ox": ox-target.
+Config.Util      = 'qb'             -- "qb": qb-progress,   "ox": ox-progress.
+
+Config.PSDispatch = false
 
 -- Config PED and locations
+Config.PedGetInfo = 'a_m_m_business_01'
 Config.StarterLocation = vector4(610.74, -428.9, 24.74, 87.46)
+
 Config.PedModel = 'g_f_y_vagos_01'
 Config.Locations = {
     vector4(605.16, -385.27, 23.75, 358.05),
@@ -59,6 +63,7 @@ Config.MachineGun = {
     target = vector3(39.9, -2657.45, 11.63),
     round = 0
 }
+
 Config.DoorsWashing = {
     [1] = {
         doorId = 2,
