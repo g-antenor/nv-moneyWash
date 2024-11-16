@@ -10,10 +10,6 @@ local currentLocation = nil
 
 local maxVelue = 5000
 local maxVelueGun = 15000
-local targetWashing = false
-
-local hasStarted = false
-local isOnCooldown = false
 
 -- Functions
 -- CreateBlips 
@@ -113,7 +109,7 @@ RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
 
     if not wash then return end
 
-    local machineGun = Config.Util == 'qb' and machineId == 100 and not (wash > maxVelueGun and allValues < wash) and wash[1] > 0 or machineId == 100 and not (wash[1] > maxVelueGun and allValues < wash[1]) and wash[1] > 0
+    local machineGun = Config.Util == 'qb' and machineId == 100 and not (wash > maxVelueGun and allValues < wash) and wash > 0 or machineId == 100 and not (wash[1] > maxVelueGun and allValues < wash[1]) and wash[1] > 0
     local machine = Config.Util == 'qb' and not (wash > maxVelue and allValues < wash) and wash > 0 or not (wash[1] > maxVelue and allValues < wash[1]) and wash[1] > 0
     
     if wash then
@@ -195,7 +191,7 @@ local function Menu(status, machineId)
     end
 end
 
-local function SpawnMachineGun()
+function SpawnMachineGun()
     local model = Config.ModelMachine
     local location = Config.MachineGun.coords
 
@@ -212,31 +208,6 @@ local function SpawnMachineGun()
     -- Liberar o modelo da memória
     SetModelAsNoLongerNeeded(model)
 end
-
-RegisterNetEvent('moneywashing:client:InitHacking', function()
-    local ped = PlayerPedId()
-    local lootDict = 'mp_fbi_heist'
-    local lootClip = 'loop'
-    local time = 70 * 1000
-
-    RequestAnimDict(lootDict)
-	while not HasAnimDictLoaded(lootDict) do
-	    Wait(100)
-	end
-	TaskPlayAnim(ped, lootDict, lootClip, 1.0, -1.0, 1.0, 11, 0, 0, 0, 0)
-
-    if exports.bl_ui:WaveMatch(1, {duration = time}) then
-        hasStarted = true
-    elseif Config.PSDispatch then
-        exports['ps-dispatch']:ArtGalleryRobbery()
-    end 
-    ClearPedTasks(ped)
-end)
-
-RegisterNetEvent('moneywashing:client:setCooldown', function(state)
-    isOnCooldown = state
-    hasStarted = state
-end)
 
 
 -- Events 
@@ -383,20 +354,5 @@ CreateThread(function()
         end
 
         Wait(1000)
-    end
-end)
-
-CreateThread(function()
-    while true do
-        if not targetWashing then
-            Machines()
-
-            SpawnMachineGun()
-            
-            MachineGun(hasStarted, isOnCooldown)
-
-            targetWashing = true
-        end
-        Wait(500)
     end
 end)

@@ -1,4 +1,32 @@
 local starterPedSpawned = nil
+local targetWashing = false
+local isOnCooldown = false
+local hasStarted = false
+
+function Hacked(status)
+    hasStarted = status
+end
+
+local function InitHacked()
+    local ped = PlayerPedId()
+    local lootDict = 'mp_fbi_heist'
+    local lootClip = 'loop'
+    local time = 70 * 1000
+
+    RequestAnimDict(lootDict)
+	while not HasAnimDictLoaded(lootDict) do
+	    Wait(100)
+	end
+	TaskPlayAnim(ped, lootDict, lootClip, 1.0, -1.0, 1.0, 11, 0, 0, 0, 0)
+
+    if exports.bl_ui:WaveMatch(1, {duration = time}) then
+        hasStarted = true
+    elseif Config.PSDispatch then
+        exports['ps-dispatch']:ArtGalleryRobbery()
+    end 
+    ClearPedTasks(ped)
+end
+
 
 function Starter(status)
     local pedModel = Config.PedGetInfo
@@ -119,6 +147,14 @@ function GetKey(location, BlipGetKey)
     end
 end
 
+function RemoveKeyTarget()
+    if Config.Target == 'qb' then
+        exports['qb-target']:RemoveZone('moneywashing_key_zone')
+    elseif Config.Target == 'ox' then
+        exports.ox_target:removeZone('moneywashing_key_zone')
+    end
+end
+
 
 -- Starter Machine Target
 function Machines()
@@ -165,80 +201,83 @@ function Machines()
     end
 end
 
-function MachineGun(hasStarted, isOnCooldown)
-    if Config.Target == 'qb' then
-        exports['qb-target']:AddBoxZone("moneywashing_machinegun_zone", Config.MachineGun.coords, 1.0, 4.0, {
-            name = "moneywashing_machinegun_zone",
-            heading = Config.MachineGun.coords.w,
-            debugPoly = false,
-            minZ = Config.MachineGun.coords.z - 1,
-            maxZ = Config.MachineGun.coords.z + 1,
-        }, {
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = "Ligar Maquina",
-                    type = 'client',
-                    event = 'moneywashing:client:InitHacking',
-                    canInteract = function()
-                        local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
-                        return not hasStarted and hasCop >= Config.MinCop and not isOnCooldown
-                    end,
-                },
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = "Money laundering",
-                    type = 'server',
-                    event = "moneywashing:server:startWashMoney",
-                    arg = Config.MachineGun.id,
-                    canInteract = function()
-                        local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
-                        return hasStarted and hasCop >= Config.MinCop and not isOnCooldown
-                    end
-                },
-            },
-            distance = 2.0
-        })
-    elseif Config.Target == 'ox' then
-        exports.ox_target:addBoxZone({
-            coords = Config.MachineGun.target,
-            size = vec3(1.0, 1.0, 1.0),
-            -- debug = true,
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = "Ligar Maquina",
-                    canInteract = function()
-                        local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
-                        return not hasStarted and hasCop >= Config.MinCop and not isOnCooldown
-                    end,
-                    onSelect = function()
-                        TriggerServerEvent("moneywashing:client:InitHacking")
-                    end
-                },
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = "Lavar Dinheiro",
-                    canInteract = function()
-                        local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
-                        return hasStarted and hasCop >= Config.MinCop and not isOnCooldown
-                    end,
-                    onSelect = function()
-                        TriggerServerEvent("moneywashing:server:startWashMoney", Config.MachineGun.id)
-                    end
-                },
-            },
-        })
+RegisterNetEvent('moneywashing:client:setCooldown', function(state)
+    isOnCooldown = state
+    isOnCooldown = state
+end)
+
+CreateThread(function()
+    while true do
+        if not targetWashing then
+            SpawnMachineGun()
+            
+            if Config.Target == 'qb' then
+                exports['qb-target']:AddBoxZone("moneywashing_machinegun_zone", Config.MachineGun.target, 1.0, 4.0, {
+                    name = "moneywashing_machinegun_zone",
+                    debugPoly = false,
+                    minZ = Config.MachineGun.target.z - 1,
+                    maxZ = Config.MachineGun.target.z + 1,
+                }, {
+                    options = {
+                        {
+                            icon = "fas fa-sign-in-alt",
+                            label = "Ligar Maquina",
+                            canInteract = function()
+                                local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
+                                return not hasStarted and hasCop >= Config.PoliceRequired and not isOnCooldown
+                            end,
+                            action = function()
+                                InitHacked()
+                            end
+                        },
+                        {
+                            icon = "fas fa-sign-in-alt",
+                            label = "Money laundering",
+                            canInteract = function()
+                                local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
+                                return hasStarted and hasCop >= Config.PoliceRequired and not isOnCooldown
+                            end,
+                            action = function()
+                                TriggerServerEvent("moneywashing:server:startWashMoney", Config.MachineGun.id)
+                            end
+                        },
+                    },
+                    distance = 2.0
+                })
+            elseif Config.Target == 'ox' then
+                exports.ox_target:addBoxZone({
+                    coords = Config.MachineGun.target,
+                    size = vec3(1.0, 1.0, 1.0),
+                    -- debug = true,
+                    options = {
+                        {
+                            icon = "fas fa-sign-in-alt",
+                            label = "Ligar Maquina",
+                            canInteract = function()
+                                local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
+                                return not hasStarted and hasCop >= Config.PoliceRequired and not isOnCooldown
+                            end,
+                            onSelect = function()
+                                TriggerServerEvent("moneywashing:client:InitHacking")
+                            end
+                        },
+                        {
+                            icon = "fas fa-sign-in-alt",
+                            label = "Lavar Dinheiro",
+                            canInteract = function()
+                                local hasCop = lib.callback.await('moneywashing:server:getCopsAmount', false)
+                                return hasStarted and hasCop >= Config.PoliceRequired and not isOnCooldown
+                            end,
+                            onSelect = function()
+                                TriggerServerEvent("moneywashing:server:startWashMoney", Config.MachineGun.id)
+                            end
+                        },
+                    },
+                })
+            end
+            targetWashing = true
+        end
+        Wait(500)
     end
-end
-
-function RemoveKeyTarget()
-    if Config.Target == 'qb' then
-        exports['qb-target']:RemoveZone('moneywashing_key_zone')
-    elseif Config.Target == 'ox' then
-        exports.ox_target:removeZone('moneywashing_key_zone')
-    end
-end
-
-
+end)
 

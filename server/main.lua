@@ -84,6 +84,7 @@ end)
 
 -- SQL
 RegisterNetEvent("moneywashing:server:startWashMoney", function(machineId)
+    print(json.encode(machineId, { indent = true }))
     local src = source
     local response = MySQL.query.await('SELECT * FROM money_laundry_machines WHERE id = ?', {machineId})
 
