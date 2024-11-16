@@ -111,6 +111,8 @@ RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
         wash = lib.inputDialog('Value wash', {{type = 'number', default = maxVelue, icon = 'hashtag'}})
     end
 
+    if not wash then return end
+
     local machineGun = Config.Util == 'qb' and machineId == 100 and not (wash > maxVelueGun and allValues < wash) and wash[1] > 0 or machineId == 100 and not (wash[1] > maxVelueGun and allValues < wash[1]) and wash[1] > 0
     local machine = Config.Util == 'qb' and not (wash > maxVelue and allValues < wash) and wash > 0 or not (wash[1] > maxVelue and allValues < wash[1]) and wash[1] > 0
     

@@ -127,8 +127,6 @@ RegisterNetEvent('moneywashing:server:collectMoney', function(machineId)
     if currentTime >= washTime then
         if machineId == 100 then
             startGlobalCooldown(10 * 60 * 1000)
-        elseif machineId ~= 100 and machine.id >= 3 then
-            globalCooldown[machineId] = { time = currentTime }
         end
         MySQL.Async.execute('DELETE FROM money_laundry_machines WHERE id = ?', {machineId}, function(affectedRows)
             if affectedRows > 0 then
@@ -151,13 +149,17 @@ RegisterNetEvent("moneywashing:server:washingMoney",function(amount, machineId)
     if machines.id == 100 and machines.round >= 1 then
         TriggerClientEvent('moneywashing:client:receiveStatus', src, 'A máquina está quente. Espere ela esfriar por 15 minutos.', 'error')
         return
-    elseif machines.id == machineId and machines.round >= 3 then
+    elseif machines.id == machineId and machines.round >= 2 then
         local currentTime = os.time()
-        if currentTime > globalCooldown[machineId].time then
+        if not globalCooldown[machineId] then
+            globalCooldown[machineId] = { time = currentTime + 10 * 60 }
+        elseif currentTime > globalCooldown[machineId].time then
+            globalCooldown[machineId] = nil
             machines.round = 0
         else
             TriggerClientEvent('moneywashing:client:receiveStatus', src, 'A máquina está quente. Espere ela esfriar por 15 minutos.', 'error')
         end 
+        print(currentTime, json.encode(globalCooldown[machineId], { indent = true }))
         return
     end
 
@@ -179,7 +181,7 @@ RegisterNetEvent("moneywashing:server:washingMoney",function(amount, machineId)
             machines.round = machines.round + 1
             amount = amount * 0.25
 
-            local currentTime = os.time() + (6 * 60)
+            local currentTime = os.time() + (1 * 60)
 
             MySQL.insert('INSERT INTO `money_laundry_machines` (id, amount, on_off, wash_time) VALUES (?, ?, ?, ?)', {
                 machineId, amount, true, currentTime
