@@ -105,12 +105,6 @@ QBCore.Functions.CreateCallback('moneywashing:server:DepositMoney', function(sou
     end  
 end)
 
-
--- Drop
-QBCore.Functions.CreateCallback('moneywashing:server:DropKey', function(source, cb, itemName)
-    cb(utils.AddItem(source, itemName))
-end)
-
 QBCore.Functions.CreateCallback('moneywashing:server:CollectMoney', function(source, cb, machineId)
     local Player = QBCore.Functions.GetPlayer(source)
     local machine = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
@@ -133,17 +127,6 @@ QBCore.Functions.CreateCallback('moneywashing:server:CollectMoney', function(sou
     end
 end)
 
-
-QBCore.Functions.CreateCallback('moneywashing:server:InitBuy', function(source, cb, itemName)
-    if utils.SearchItem(source, itemName) > 0 then
-        utils.RemoveItem(source, itemName, 1)
-        cb(true)
-    else
-        cb(false)
-    end
-end)
-
-
 QBCore.Functions.CreateCallback('moneywashing:server:getCopsAmount', function(source, cb, policeMin)
     local amount = 0
     local players = QBCore.Functions.GetQBPlayers()
@@ -155,20 +138,4 @@ QBCore.Functions.CreateCallback('moneywashing:server:getCopsAmount', function(so
     end
 
     cb(amount >= policeMin)
-end)
-
-
-QBCore.Functions.CreateCallback('moneywashing:server:ToggleDoor', function(source, cb, doorId)
-    local doorStatus = exports.ox_doorlock:getDoor(doorId)
-
-    if doorStatus.state == 1 then
-        exports.ox_doorlock:setDoorState(doorId, 0)
-    else
-        exports.ox_doorlock:setDoorState(doorId, 1)
-    end
-    cb(true)
-end)
-
-QBCore.Functions.CreateUseableItem(Config.Key, function(source) 
-    TriggerClientEvent('moneywashing:client:UseLabKey', source)
 end)
