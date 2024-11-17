@@ -2,7 +2,7 @@
 
 Simple script for money laundering, used to convert dirty cash into clean money, linking the cash to the machine where it was laundered. Any player can claim the amount with adjustable deductions.
 
----
+**The script offers two formats**: `Safe Mode` and `PvP Mode`
 
 ## ⚙️ Dependências
 
@@ -14,7 +14,15 @@ Check the compatible dependencies below:
   - `qb-inventory` or `ox_inventory`
   - `qb-target` or `ox_target`
 
----
+<br>
+<br>
+
+>If you want to support, you can buy me a coffee: </br>
+<a href="https://ko-fi.com/niomev2" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" width="150" ></a>
+
+
+<br>
+<br>
 
 ## 🚀 Instalação
 
