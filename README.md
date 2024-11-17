@@ -18,7 +18,7 @@ Check the compatible dependencies below:
 <br>
 
 >If you want to support, you can buy me a coffee: </br>
-<a href="https://ko-fi.com/niomev2" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" width="150" ></a>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D81650V6)
 
 
 <br>
