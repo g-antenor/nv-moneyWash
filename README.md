@@ -10,7 +10,6 @@ Script developed for `QBCore`, compatible with some `OX` resources.
 Check the compatible dependencies below:
 - **Dependencies**:
   - [`ox_lib`](https://github.com/overextended/ox_lib)
-  - [`ox_doorlock`](https://github.com/overextended/ox_doorlock)
   - [`qb-inventory`](https://github.com/qbcore-framework/qb-inventory) or [`ox_inventory`](https://github.com/overextended/ox_inventory)
   - [`qb-target`](https://github.com/qbcore-framework/qb-target) or [`ox_target`](https://github.com/overextended/ox_target)
 
