@@ -10,7 +10,6 @@ Script developed for `QBCore`, compatible with some `OX` resources.
 Check the compatible dependencies below:
 - **Dependencies**:
   - [`ox_lib`](https://github.com/overextended/ox_lib)
-  - [`ox_doorlock`](https://github.com/overextended/ox_doorlock)
   - [`qb-inventory`](https://github.com/qbcore-framework/qb-inventory) or [`ox_inventory`](https://github.com/overextended/ox_inventory)
   - [`qb-target`](https://github.com/qbcore-framework/qb-target) or [`ox_target`](https://github.com/overextended/ox_target)
 
@@ -18,7 +17,7 @@ Check the compatible dependencies below:
 <br>
 
 >If you want to support, you can buy me a coffee: </br>
-<a href="https://ko-fi.com/niomev2" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-red.png" alt="Buy Me A Coffee" width="150" ></a>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D81650V6)
 
 
 <br>
