@@ -8,7 +8,7 @@ local Translations = {
             ['getKey_blip'] = 'Take the key',
             ['collected_key'] = 'You collect the key.',
 
-            ['collected_money'] = 'You collect $',
+            ['collected_money'] = 'You collect',
             ['put_money_success'] = 'Wait 2 minutes for collect the money',
 
             ['use_key'] = 'Use Key',
