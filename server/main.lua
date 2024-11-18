@@ -17,7 +17,7 @@ end)
 QBCore.Functions.CreateCallback('moneywashing:server:CheckCooldownGun', function(source, cb, machineId)
     local currentTime = os.time()
     
-    if machineId == 100 then
+    if machineId >= 100 then
         if globalCooldown[machineId] and currentTime < globalCooldown[machineId].time then cb(false) end
         if globalCooldown[machineId] and currentTime > globalCooldown[machineId].time then globalCooldown[machineId] = nil end
     end
@@ -61,7 +61,7 @@ end)
 
 
 QBCore.Functions.CreateCallback('moneywashing:server:DepositMoney', function(source, cb, machineId, amount)
-    local machines = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
+    local machines = machineId >= 100 and Config.MachineGun or Config.Machines[machineId]
     local currentTime = os.time()
     
     if machines.id == 100 and machines.round >= 1 then
@@ -79,7 +79,7 @@ QBCore.Functions.CreateCallback('moneywashing:server:DepositMoney', function(sou
     else
         if utils.RemoveItem(source, Config.Money, amount) then
         
-            if machineId == 100 then
+            if machineId >= 100 then
                 local time = currentTime + (2 * 60)
                 machines.round = machines.round + 1
                 amount = amount * 0.90
@@ -107,7 +107,7 @@ end)
 
 QBCore.Functions.CreateCallback('moneywashing:server:CollectMoney', function(source, cb, machineId)
     local Player = QBCore.Functions.GetPlayer(source)
-    local machine = machineId == 100 and Config.MachineGun or Config.Machines[machineId]
+    local machine = machineId >= 100 and Config.MachineGun or Config.Machines[machineId]
     local response = MySQL.query.await('SELECT * FROM money_laundry_machines WHERE id = ?', {machineId})
     local washTime = tonumber(response[1].wash_time)
     local amount = tonumber(response[1].amount)
@@ -118,7 +118,7 @@ QBCore.Functions.CreateCallback('moneywashing:server:CollectMoney', function(sou
     if not response or #response == 0 then cb(false) end
 
     if currentTime >= washTime then
-        if machineId == 100 then startGlobalCooldown(Config.CooldownTime) end
+        if machineId >= 100 then startGlobalCooldown(Config.CooldownTime) end
         
         MySQL.Async.execute('DELETE FROM money_laundry_machines WHERE id = ?', {machineId}, function(affectedRows)
             if affectedRows > 0 then Player.Functions.AddMoney('cash', amount) cb(true) end

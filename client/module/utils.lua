@@ -13,6 +13,25 @@ function utils.Notify(notification, type, time)
     end
 end
 
+---@param model string
+---@param location vector4
+function utils.SpawnMachine(model, location)
+    RequestModel(model)
+    while not HasModelLoaded(model) do
+        Wait(1)
+    end
+
+    local prop = CreateObject(model, location.x, location.y, location.z - 1.0, true, true, true)
+    SetEntityAsMissionEntity(prop, true, true)
+    SetEntityInvincible(prop, true)
+    FreezeEntityPosition(prop, true)
+
+    SetEntityHeading(prop, location.w)
+    SetModelAsNoLongerNeeded(model)
+
+    return prop
+end
+
 ---@return boolean
 function utils.CheckPolice()
     local amountRequired = false

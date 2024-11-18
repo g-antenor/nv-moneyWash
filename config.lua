@@ -3,70 +3,49 @@ Config = {}
 Config.PoliceRequired = 1
 
 -- Config resources
-Config.Inventory = 'ox'             -- "qb": qb-inventory,  "ox": ox-inventory.
-Config.Target    = 'ox'             -- "qb": qb-target,     "ox": ox-target.
-Config.Util      = 'ox'             -- "qb": qb-progress,   "ox": ox-progress.
+Config.Inventory = 'qb'             -- "qb": qb-inventory,  "ox": ox-inventory.
+Config.Target    = 'qb'             -- "qb": qb-target,     "ox": ox-target.
+Config.Util      = 'qb'             -- "qb": qb-progress,   "ox": ox-progress.
 
 Config.PSDispatch = false
 
--- Config PED and locations
-Config.PedGetInfo = 'a_m_m_business_01'
-Config.StarterLocation = vector4(610.74, -428.9, 24.74, 87.46)
-
-Config.PedModel = 'g_f_y_vagos_01'
-Config.Locations = {
-    vector4(605.16, -385.27, 24.75, 358.05),
-    vector4(623.13, -384.74, 24.73, 110.31),
-    vector4(594.25, -398.34, 24.73, 281.55),
-}
-
-Config.KeyLocations = {
-    vector3(597.84, -431.28, 24.74),
-    vector3(605.65, -448.13, 24.69),
-}
-
--- Route with items or money
-Config.Starter = 'weed_brick'
 Config.Money = 'markedbills'
-Config.Order = 'weapon_garbagebag'
 Config.Key = 'labkey'
 
 Config.CooldownTime = 2 * 60 * 1000
-Config.HoursInit = 0
-Config.HoursEnd = 3
-Config.PriceKey = math.random(5000, 10000) 
+
+-- Props
+Config.ModelProp = 'prop_washer_02'                             -- Prop washing "Safe"
+Config.ModelMachine = 'bkr_prop_printmachine_6rollerp_st'       -- Prop washing "PVP"
 
 -- Config washing
-Config.Cooldown = 2 * 60 * 1000                            -- Cooldown 2min
-Config.Machines = {
+Config.Cooldown = 2 * 60 * 1000                                 -- Cooldown 2min
+Config.Machines = {                                             -- List of machines in map
     [1] = {
-        id = 1,
-        coords = vector3(1135.51, -992.28, 46.01),
-        round = 0,
+        id = 1,                                                 -- Machine identifier in DB
+        coords = vector4(31.01, -2664.94, 12.05, 281.37),       -- Coords machine and spawn prop (if enabled)
+        prop_enabled = true,                                    -- Enable prop or not (true or false)
+        round = 0,                                              -- Machine round to enter in cooldown
     },
     [2] = {
         id = 2,
-        coords = vector3(1135.17, -989.54, 46.01),
+        coords = vector4(30.78, -2668.24, 12.05, 273.8),
+        prop_enabled = true,
         round = 0,
     },
     [3] = {
         id = 3,
         coords = vector3(1135.05, -988.23, 46.01),
+        prop_enabled = false,
         round = 0,
     },
 }
 
-Config.ModelMachine = 'bkr_prop_printmachine_6rollerp_st'
+-- Machine gun settings
+-- For creating new, follow example and add "id" above 100
 Config.MachineGun = {
-    id = 100,
-    coords = vector4(34.9, -2656.9, 11.04, 0.25),
-    target = vector3(39.9, -2657.45, 11.63),
-    round = 0
-}
-
-Config.DoorsWashing = {
-    [1] = {
-        doorId = 2,
-        coords = vector3(1130.82, -989.19, 46.27),
-    }
+    id = 100,                                                   -- Machine identifier in DB
+    coords = vector4(34.9, -2656.9, 12.04, 0.25),               -- Coords spawn machine prop
+    target = vector3(39.9, -2657.45, 11.63),                    -- Target machine (following estructure of machine, the panel is in this location)
+    round = 0                                                   -- Machine round to enter in cooldown
 }
