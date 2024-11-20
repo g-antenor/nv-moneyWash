@@ -78,7 +78,7 @@ end)
 AddEventHandler('onResourceStart', function()
     setupMachines()
     if Config.ClearOnStartup then
-        Wait(5000) -- Wait 5 seconds to allow all functions to be executed on startup
+        Wait(5000)
         for k, v in pairs(machines) do
             if machines[k].health == 0 then
                 DeleteEntity(k)
@@ -96,7 +96,7 @@ AddEventHandler('onResourceStop', function()
 end)
 
 QBCore.Functions.CreateCallback('moneywashing:server:GetMachines', function(source, cb)
-    local result = MySQL.query.await('SELECT * FROM money_laundry_machines') -- Tabela no banco de dados
+    local result = MySQL.query.await('SELECT * FROM money_laundry_machines')
     local machines = {}
 
     for _, row in pairs(result) do

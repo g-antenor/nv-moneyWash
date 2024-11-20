@@ -39,7 +39,7 @@ RegisterNetEvent('moneyWash:client:placeProp', function(data)
         if hit == 1 then
             SetEntityCoords(obj, dest.x, dest.y, dest.z + 0.5)
 
-            if IsControlJustPressed(0, 38) then -- Tecla para confirmar
+            if IsControlJustPressed(0, 38) then -- E
                 QBCore.Functions.TriggerCallback('moneywashing:server:GetMachines', function(machines)
                     for _, machine in pairs(machines) do
                         if #(vector3(dest.x, dest.y, dest.z) - vector3(machine.coords.x, machine.coords.y, machine.coords.z)) <= 1.0 then
@@ -74,7 +74,7 @@ RegisterNetEvent('moneyWash:client:placeProp', function(data)
                 SetEntityHeading(obj, head - 5)
             end
 
-            -- Cancelar
+            -- Cancel
             if IsControlJustPressed(0, 47) then
                 placed = false
                 utils.removeTextUI()
