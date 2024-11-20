@@ -1,8 +1,8 @@
 # 💵 Money Washing
 
-Simple script for money laundering, used to convert dirty cash into clean money, linking the cash to the machine where it was laundered. Any player can claim the amount with adjustable deductions.
+This script introduces an interactive system for laundering dirty cash into clean money. Players can spawn a washing machine using a specific item, making it accessible to all players. The system includes a round-based mechanism and a cooldown timer, ensuring balanced gameplay. It also features a configurable percentage for clean money returns, adding a strategic element to the process. Perfect for roleplay servers looking to enhance criminal activities with engaging and dynamic mechanics.
 
-**The script offers two formats**: `Safe Mode` and `PvP Mode`
+<br>
 
 ## ⚙️ Dependências
 
@@ -41,7 +41,7 @@ Follow the steps below to install and configure the script:
         - **Images**: Copy all images from `installation/images` and paste them into `ox_inventory/web/images`.
 
     - **qb-inventory**:
-        - **Items**: Copy all items from `installation/ox_inventory` and paste them into `qb-core/shared/items`.
+        - **Items**: Copy all items from `installation/qb-inventory` and paste them into `qb-core/shared/items`.
         - **Images**: Copy all images from `installation/images` and paste them into `qb-inventory/html/images`.
 
 4. In your `database`, run the `.sql file` to create the table.
