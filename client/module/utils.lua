@@ -15,59 +15,29 @@ end
 
 ---@param model string
 ---@param location vector4
+---@return number
 function utils.SpawnMachine(model, location)
     RequestModel(model)
     while not HasModelLoaded(model) do
-        Wait(1)
+        Wait(0)
     end
 
-    local prop = CreateObject(model, location.x, location.y, location.z - 1.0, true, true, true)
+    local prop = CreateObject(model, location.x, location.y, location.z, true, true, true)
+    SetEntityHeading(prop, location.w)
     SetEntityAsMissionEntity(prop, true, true)
     SetEntityInvincible(prop, true)
     FreezeEntityPosition(prop, true)
 
-    SetEntityHeading(prop, location.w)
     SetModelAsNoLongerNeeded(model)
 
     return prop
 end
 
+---@param dict string
+---@param clip string
+---@param time number
+---@param txt string
 ---@return boolean
-function utils.CheckPolice()
-    local amountRequired = false
-    QBCore.Functions.TriggerCallback('moneywashing:server:getCopsAmount', function(cb)  
-        amountRequired = cb
-    end, Config.PoliceRequired)
-
-    Wait(100)
-    return amountRequired
-end
-
----@param machineId number
----@return boolean
-function utils.CheckCooldown(machineId)
-    local status = false
-    QBCore.Functions.TriggerCallback('moneywashing:server:CheckCooldown', function(isAvailable) 
-        status = isAvailable
-    end, machineId)
-
-    Wait(100)
-    return status
-end
-
----@param machineId number
----@return boolean
-function utils.CheckCooldownGun(machineId)
-    local status = false
-
-    QBCore.Functions.TriggerCallback('moneywashing:server:CheckCooldownGun', function(isAvailable) 
-        status = isAvailable
-    end, machineId)
-
-    Wait(100)
-    return status
-end
-
 function utils.Animations(dict, clip, time, txt)
     if Config.Util == 'qb' then
         QBCore.Functions.Progressbar('money_washing', txt, time, false, false, {
@@ -100,4 +70,22 @@ function utils.Animations(dict, clip, time, txt)
     end
 
     return true
+end
+
+---@param text string
+---@param position string
+function utils.textUI(text, position)
+    if Config.Util == 'qb' then
+        exports['qb-core']:DrawText(text, position)
+    elseif Config.Util == 'ox' then
+        lib.showTextUI(text, {position = position})
+    end
+end
+
+function utils.removeTextUI()
+    if Config.Util == 'qb' then
+        exports['qb-core']:HideText()
+    elseif Config.Util == 'ox' then
+        lib.hideTextUI()
+    end
 end

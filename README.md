@@ -10,7 +10,6 @@ Script developed for `QBCore`, compatible with some `OX` resources.
 Check the compatible dependencies below:
 - **Dependencies**:
   - [`ox_lib`](https://github.com/overextended/ox_lib)
-  - [`bl_ui`](https://github.com/Byte-Labs-Studio/bl_ui)
   - [`qb-inventory`](https://github.com/qbcore-framework/qb-inventory) or [`ox_inventory`](https://github.com/overextended/ox_inventory)
   - [`qb-target`](https://github.com/qbcore-framework/qb-target) or [`ox_target`](https://github.com/overextended/ox_target)
 
@@ -36,6 +35,15 @@ Follow the steps below to install and configure the script:
     ```bash
     ensure nv-moneyWash
     ```
-3. In your `database`, run the `.sql file` to create the table.
+3. In the `installation` folder, you will find item resources for running the script:
+    - **ox_inventory**:
+        - **Items**: Copy all items from `installation/ox_inventory` and paste them into `ox_inventory/data/items`.
+        - **Images**: Copy all images from `installation/images` and paste them into `ox_inventory/web/images`.
 
-4. Modify `config.lua` according to your needs, then start the server.
+    - **qb-inventory**:
+        - **Items**: Copy all items from `installation/ox_inventory` and paste them into `qb-core/shared/items`.
+        - **Images**: Copy all images from `installation/images` and paste them into `qb-inventory/html/images`.
+
+4. In your `database`, run the `.sql file` to create the table.
+
+5. Modify `config.lua` according to your needs, then start the server.

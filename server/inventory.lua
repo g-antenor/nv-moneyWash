@@ -18,13 +18,13 @@ end
 ---@params source number
 ---@params itemName string
 ---@params amount number
-function utils.RemoveItem(source, itemName, amount)
+function utils.RemoveItem(source, itemName, amount, slot)
     local status = false
 
     if Config.Inventory == 'ox' then
-        status = exports.ox_inventory:RemoveItem(source, itemName, amount)
+        status = exports.ox_inventory:RemoveItem(source, itemName, amount, nil, slot)
     elseif Config.Inventory == 'qb' then
-        status = exports['qb-inventory']:RemoveItem(source, itemName, amount)
+        status = exports['qb-inventory']:RemoveItem(source, itemName, amount, slot)
     end
     
     return status

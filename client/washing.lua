@@ -1,28 +1,6 @@
 QBCore = exports['qb-core']:GetCoreObject()
 
-local targetWashing = false
-local hasStarted = false
-
-local function InitHacked()
-    local ped = PlayerPedId()
-    local time = 70 * 1000
-
-    RequestAnimDict('mp_fbi_heist')
-	while not HasAnimDictLoaded('mp_fbi_heist') do
-	    Wait(100)
-	end
-	TaskPlayAnim(ped, 'mp_fbi_heist', 'loop', 1.0, -1.0, 1.0, 11, 0, 0, 0, 0)
-
-    if exports.bl_ui:WaveMatch(1, {duration = time}) then
-        hasStarted = true
-    elseif Config.PSDispatch then
-        exports['ps-dispatch']:ArtGalleryRobbery()
-    end 
-
-    ClearPedTasks(ped)
-end
-
-local function Menu(machineId)
+function Menu(netId)
     QBCore.Functions.TriggerCallback('moneywashing:server:CheckCollectMoney', function(status)
         if Config.Util == 'qb' then
             local menu = {}
@@ -37,7 +15,7 @@ local function Menu(machineId)
                 icon = 'fas fa-tshirt',
                 params = {
                     event = 'moneywashing:client:Deposit',
-                    args = machineId
+                    args = netId
                 }
             })
     
@@ -48,7 +26,7 @@ local function Menu(machineId)
                 disabled = status,
                 params = {
                     event = 'moneywashing:client:Collect',
-                    args = machineId
+                    args = netId
                 }
             })
     
@@ -65,7 +43,7 @@ local function Menu(machineId)
                         description = Lang:t('menu.deposit_description'),
                         onSelect = function()
                             if status then
-                                TriggerEvent('moneywashing:client:Deposit', machineId)
+                                TriggerEvent('moneywashing:client:Deposit', netId)
                             end
                         end,
                     },
@@ -75,211 +53,17 @@ local function Menu(machineId)
                         description = Lang:t('menu.withdraw_description'),
                         disabled = status,
                         onSelect = function()
-                            TriggerEvent('moneywashing:client:Collect', machineId)
+                            TriggerEvent('moneywashing:client:Collect', netId)
                         end
                     }
                 }
             })
             lib.showContext('washMoney_menu')
         end
-    end, machineId)
+    end, netId)
 end
 
-local function TargetMachine(machineWash)
-    if Config.Target == 'qb' then
-        exports['qb-target']:AddBoxZone("moneywashing_machine_zone_" .. machineWash.id, machineWash.coords, 1.0, 4.0, {
-            name = "moneywashing_machine_zone_" .. machineWash.id,
-            debugPoly = false,
-            minZ = machineWash.coords.z - 1,
-            maxZ = machineWash.coords.z + 1,
-        }, {
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.laundry'),
-                    canInteract = function()
-                        return utils.CheckCooldown(machineWash.id)
-                    end,
-                    action = function()
-                        QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
-                            if status then
-                                Menu(machineWash.id)
-                            else
-                                utils.Notify(Lang:t('notify.error.money_not_ready'), 'error', 5000)
-                            end
-                        end, machineWash.id)
-                    end
-                },
-            },
-            distance = 2.0
-        })  
-    elseif Config.Target == 'ox' then
-        exports.ox_target:addBoxZone({
-            coords = machineWash.coords,
-            size = vec3(1.0, 1.0, 4.0),
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.laundry'),
-                    canInteract = function()
-                        return utils.CheckCooldown(machineWash.id)
-                    end,
-                    onSelect = function()
-                        QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
-                            if status then
-                                Menu(machineWash.id)
-                            else
-                                utils.Notify(Lang:t('notify.error.money_not_ready'), 'error', 5000)
-                            end
-                        end, machineWash.id)
-                    end
-                },
-            },
-        })
-    end
-end
-
-local function TargetMachineWithProp(machineWash, prop)
-    local entity = utils.SpawnMachine(prop, machineWash.coords)
-    if Config.Target == 'qb' then
-        exports['qb-target']:AddTargetEntity(entity, {  
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.laundry'),
-                    canInteract = function()
-                        return utils.CheckCooldown(machineWash.id)
-                    end,
-                    action = function()
-                        QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
-                            if status then
-                                Menu(machineWash.id)
-                            else
-                                utils.Notify(Lang:t('notify.error.money_not_ready'), 'error', 5000)
-                            end
-                        end, machineWash.id)
-                    end
-                },
-            },
-            distance = 2.0
-        }) 
-    elseif Config.Target == 'ox' then
-        exports.ox_target:addLocalEntity(entity, {
-            {
-                icon = "fas fa-sign-in-alt",
-                label = Lang:t('target.laundry'),
-                canInteract = function()
-                    return utils.CheckCooldown(machineWash.id)
-                end,
-                onSelect = function()
-                    QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
-                        if status then
-                            Menu(machineWash.id)
-                        else
-                            utils.Notify(Lang:t('notify.error.money_not_ready'), 'error', 5000)
-                        end
-                    end, machineWash.id)
-                end
-            },
-        })
-    end
-end
-
-local function Machines()
-    for _, machineWash in pairs(Config.Machines) do
-        if machineWash.prop_enabled then
-            TargetMachineWithProp(machineWash, Config.ModelProp)
-        else
-            TargetMachine(machineWash)
-        end
-    end
-end
-
-local function TargetMachineGun()
-    utils.SpawnMachine(Config.ModelMachine, Config.MachineGun.coords)
-    if Config.Target == 'qb' then
-        exports['qb-target']:AddBoxZone("moneywashing_machinegun_zone", Config.MachineGun.target, 1.0, 4.0, {
-            name = "moneywashing_machinegun_zone",
-            debugPoly = false,
-            minZ = Config.MachineGun.target.z - 1,
-            maxZ = Config.MachineGun.target.z + 1,
-        }, {
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.start_machine'),
-                    canInteract = function()
-                        local hasCop = utils.CheckPolice()
-                        local isOnCooldown = utils.CheckCooldownGun(Config.MachineGun.id)
-                        return not hasStarted and hasCop and isOnCooldown
-                    end,
-                    action = function()
-                        InitHacked()
-                    end
-                },
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.laundry'),
-                    canInteract = function()
-                        local hasCop = utils.CheckPolice()
-                        local isOnCooldown = utils.CheckCooldownGun(Config.MachineGun.id)
-                        return hasStarted and hasCop and isOnCooldown
-                    end,
-                    action = function()
-                        QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
-                            if status then
-                                Menu(Config.MachineGun.id)
-                            else
-                                utils.Notify(Lang:t('notify.error.money_not_ready'), 'error', 5000)
-                            end
-                        end, Config.MachineGun.id)
-                    end
-                },
-            },
-            distance = 2.0
-        })
-    elseif Config.Target == 'ox' then
-        exports.ox_target:addBoxZone({
-            coords = Config.MachineGun.target,
-            size = vec3(1.0, 1.0, 1.0),
-            debug = false,
-            options = {
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.start_machine'),
-                    canInteract = function()
-                        local hasCop = utils.CheckPolice()
-                        local isOnCooldown = utils.CheckCooldownGun(Config.MachineGun.id)
-                        return not hasStarted and hasCop and isOnCooldown
-                    end,
-                    onSelect = function()
-                        InitHacked()
-                    end
-                },
-                {
-                    icon = "fas fa-sign-in-alt",
-                    label = Lang:t('target.laundry'),
-                    canInteract = function()
-                        local hasCop = utils.CheckPolice()
-                        local isOnCooldown = utils.CheckCooldownGun(Config.MachineGun.id)
-                        return hasStarted and hasCop and isOnCooldown
-                    end,
-                    onSelect = function()
-                        QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
-                            if status then
-                                Menu(Config.MachineGun.id)
-                            else
-                                utils.Notify(Lang:t('notify.error.money_not_ready'), 'error', 5000)
-                            end
-                        end, Config.MachineGun.id)
-                    end
-                },
-            },
-        })
-    end
-end
-
-RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
+RegisterNetEvent('moneywashing:client:Deposit', function(netId)
     local checkValues = false
     local maxVelue = 5000
     local allValues = 0
@@ -322,9 +106,9 @@ RegisterNetEvent('moneywashing:client:Deposit', function(machineId)
                 if result then
                     utils.Notify(Lang:t('notify.success.put_money_success'), 'success', 5000)
                 else
-                    utils.Notify(Lang:t('notify.error.put_money'), 'error', 5000)
+                    utils.Notify(Lang:t('notify.error.not_money'), 'error', 5000)
                 end
-            end, machineId, wash)
+            end, netId, wash)
         end
     elseif not wash or checkValues then
         utils.Notify(Lang:t('notify.error.not_money'), 'error', 5000)
@@ -345,20 +129,57 @@ RegisterNetEvent('moneywashing:client:Collect', function(machineId)
     end
 end)
 
-CreateThread(function()
-    while true do
-        if not targetWashing then            
-            Machines()
-            
-            TargetMachineGun()
-            
-            targetWashing = true
-        end
-        Wait(500)
-    end
+RegisterNetEvent('moneywashing:client:Notify', function(message, type, time)
+    utils.Notify(message, type, time)
 end)
 
-
-
-
-
+CreateThread(function()
+    if Config.Target == 'qb' then
+        exports['qb-target']:AddTargetModel(Config.ModelProp, {  
+            options = {
+                {
+                    icon = "fas fa-sign-in-alt",
+                    label = Lang:t('target.laundry'),
+                    action = function(entity)
+                        local netId = NetworkGetNetworkIdFromEntity(entity)
+                        QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
+                            if status then
+                                Menu(netId)
+                            end
+                        end, netId)
+                    end
+                },
+                {
+                    icon = "fas fa-trash",
+                    label = Lang:t('target.remove_machine'),
+                    action = function(entity)
+                        TriggerServerEvent('moneywashing:server:destroyMachine', NetworkGetNetworkIdFromEntity(entity))
+                    end
+                }
+            },
+            distance = 2.0
+        }) 
+    elseif Config.Target == 'ox' then
+        exports.ox_target:addModel(Config.ModelProp, {
+            {
+                icon = "fas fa-sign-in-alt",
+                label = Lang:t('target.laundry'),
+                onSelect = function(data)
+                    local netId = NetworkGetNetworkIdFromEntity(data.entity)
+                    QBCore.Functions.TriggerCallback('moneywashing:server:CheckOpenMenu', function(status)
+                        if status then
+                            Menu(netId)
+                        end
+                    end, netId)
+                end
+            },
+            {
+                icon = "fas fa-trash",
+                label = Lang:t('target.remove_machine'),
+                onSelect = function(data)
+                    TriggerServerEvent('moneywashing:server:destroyMachine', NetworkGetNetworkIdFromEntity(data.entity))
+                end
+            }
+        })
+    end
+end)
